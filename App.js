@@ -5,11 +5,44 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Dimensions,
 } from 'react-native';
+import Card from './components/Card';
 
 class App extends Component {
+  state = {
+    cardSymbols: ['😅', '😍', '💩', '😴', '👻', '😈', '💣', '😎'],
+    cardSymbolsInRand: [],
+    isOpen: [],
+  };
+
+  componentDidMount() {
+    let newCardSymbols = [...this.state.cardSymbols, ...this.state.cardSymbols];
+    let cardSymbolsInRand = this.shuffleArray(newCardSymbols);
+    let isOpen = [];
+
+    this.setState({
+      cardSymbolsInRand,
+      isOpen,
+    });
+  }
+
+  cardPressHandler = index => {
+    let isOpen = [...this.state.isOpen];
+    isOpen[index] = true;
+
+    this.setState({
+      isOpen,
+    });
+  };
+
+  shuffleArray = arr => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const rand = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[rand]] = [arr[rand], arr[i]];
+    }
+    return arr;
+  };
   render() {
     return (
       <>
@@ -20,54 +53,16 @@ class App extends Component {
           </View>
           <View style={styles.main}>
             <View style={styles.gameBoard}>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>😅</Text>
-              </TouchableOpacity>
+              {this.state.cardSymbolsInRand.map((symbol, index) => (
+                <Card
+                  key={index}
+                  onPress={() => this.cardPressHandler(index)}
+                  style={styles.button}
+                  title={symbol}
+                  cover="❓"
+                  isShow={this.state.isOpen[index]}
+                />
+              ))}
             </View>
           </View>
           <View style={styles.footer}>
@@ -121,9 +116,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 30,
   },
 });
 
