@@ -6,6 +6,7 @@ import {
   Text,
   StyleSheet,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import Card from './components/Card';
 
@@ -14,9 +15,13 @@ class App extends Component {
     cardSymbols: ['😅', '😍', '💩', '😴', '👻', '😈', '💣', '😎'],
     cardSymbolsInRand: [],
     isOpen: [],
+    firstPickedIndex: null,
+    secondPickedIndex: null,
+    steps: 0,
+    isEnded: null,
   };
 
-  componentDidMount() {
+  initGame = () => {
     let newCardSymbols = [...this.state.cardSymbols, ...this.state.cardSymbols];
     let cardSymbolsInRand = this.shuffleArray(newCardSymbols);
     let isOpen = [];
@@ -25,16 +30,90 @@ class App extends Component {
       cardSymbolsInRand,
       isOpen,
     });
+  };
+
+  resetGame = () => {
+    this.initGame();
+    this.setState({
+      isOpen: [],
+      firstPickedIndex: null,
+      secondPickedIndex: null,
+      steps: 0,
+      isEnded: null,
+    });
+  };
+
+  componentDidMount() {
+    this.initGame();
   }
 
   cardPressHandler = index => {
+    if (this.state.isOpen[index]) {
+      return;
+    }
     let isOpen = [...this.state.isOpen];
     isOpen[index] = true;
 
+    if (
+      this.state.firstPickedIndex == null &&
+      this.state.secondPickedIndex == null
+    ) {
+      let firstPickedIndex = index;
+      this.setState({
+        firstPickedIndex,
+      });
+    } else if (
+      this.state.firstPickedIndex != null &&
+      this.state.secondPickedIndex == null
+    ) {
+      let secondPickedIndex = index;
+      this.setState({
+        secondPickedIndex,
+      });
+    }
     this.setState({
+      steps: this.state.steps + 1,
       isOpen,
     });
   };
+
+  calculateGameResult = () => {
+    let totalOpen = this.state.isOpen.filter(isOpen => isOpen);
+    if (totalOpen.length == this.state.cardSymbolsInRand.length) {
+      this.setState({
+        isEnded: true,
+      });
+    }
+    if (this.state.secondPickedIndex != null) {
+      let firstSymbol =
+        this.state.cardSymbolsInRand[this.state.firstPickedIndex];
+      let isOpen = [...this.state.isOpen];
+      let secondSymbol =
+        this.state.cardSymbolsInRand[this.state.secondPickedIndex];
+      if (firstSymbol != secondSymbol) {
+        setTimeout(() => {
+          isOpen[this.state.firstPickedIndex] = null;
+          isOpen[this.state.secondPickedIndex] = null;
+          this.setState({
+            isOpen,
+            firstPickedIndex: null,
+            secondPickedIndex: null,
+          });
+        }, 1000);
+      } else {
+        this.setState({
+          firstPickedIndex: null,
+          secondPickedIndex: null,
+        });
+      }
+    }
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.secondPickedIndex != prevState.secondPickedIndex) {
+      this.calculateGameResult();
+    }
+  }
 
   shuffleArray = arr => {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -66,7 +145,16 @@ class App extends Component {
             </View>
           </View>
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Footer text</Text>
+            <Text style={styles.footerText}>
+              {this.state.isEnded
+                ? `you have completed this game in ${this.state.steps} steps`
+                : `You have tried ${this.state.steps} times.`}
+            </Text>
+            {this.state.isEnded ? (
+              <TouchableOpacity onPress={this.resetGame}>
+                <Text>Try again!</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         </SafeAreaView>
       </>
@@ -99,7 +187,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   footerText: {
-    fontSize: 20,
+    fontSize: 16,
   },
   gameBoard: {
     flex: 1,
